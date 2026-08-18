@@ -1,26 +1,26 @@
 # syntax=docker/dockerfile:1.6
 
 ###############################################################################
-# Stage 1 — build a GraalVM native binary
+# Stage 1 — build a native binary with Mandrel (GraalVM for Quarkus)
 ###############################################################################
-# GraalVM CE JDK 17 ships with the native-image component pre-installed and
-# lives on a public registry, so Render can pull it without a quay.io login.
-# JDK 17 is the highest version the public ghcr.io/graalvm/graalvm-ce images
-# ship — Quarkus 3.15 supports JDK 17+ (we only use records/sealed types).
-FROM ghcr.io/graalvm/graalvm-ce:java17-21.3.0 AS build
+# The Mandrel builder image ships with native-image + JDK pre-installed.
+# Mandrel 23.1.12.0 ≥ 23.1.0, which Quarkus 3.15 requires.
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 AS build
 
+USER root
 WORKDIR /build
 
-# Cache dependencies first: copy only pom + wrapper, resolve, then copy source
+# Cache dependencies first: copy only pom + wrapper, resolve, then copy source.
+# mvnw downloads Maven automatically — no need to install it separately.
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
 RUN chmod +x mvnw && ./mvnw -B -ntp -q dependency:go-offline
 
 COPY src ./src
 
-# JAVA_HOME is already set inside the graalvm-ce image. -Dnative activates
-# the quarkus-maven-plugin native profile, which invokes the native-image
-# compiler that ships in this image.
+# Point GRAALVM_HOME at the Mandrel installation so the quarkus-maven-plugin
+# finds native-image. -Dnative activates the native profile.
+ENV GRAALVM_HOME=/opt/mandrel
 RUN ./mvnw -B -ntp package -Dnative -DskipTests
 
 ###############################################################################
