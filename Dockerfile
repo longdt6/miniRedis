@@ -3,9 +3,11 @@
 ###############################################################################
 # Stage 1 — build a GraalVM native binary
 ###############################################################################
-# GraalVM CE JDK 21 ships with the native-image component pre-installed and
+# GraalVM CE JDK 17 ships with the native-image component pre-installed and
 # lives on a public registry, so Render can pull it without a quay.io login.
-FROM ghcr.io/graalvm/graalvm-ce:21.1.0 AS build
+# JDK 17 is the highest version the public ghcr.io/graalvm/graalvm-ce images
+# ship — Quarkus 3.15 supports JDK 17+ (we only use records/sealed types).
+FROM ghcr.io/graalvm/graalvm-ce:java17-21.3.0 AS build
 
 WORKDIR /build
 
