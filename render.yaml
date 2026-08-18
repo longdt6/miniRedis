@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: miniredis
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: MINIREDIS_DATA_FILE
+        value: /tmp/miniredis.json
+      - key: MINIREDIS_EXPIRY_SWEEP_MS
+        value: "1000"

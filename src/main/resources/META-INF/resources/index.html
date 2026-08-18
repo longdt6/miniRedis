@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>miniRedis</title>
+    <style>
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #1f2937;
+            background: #fafafa;
+        }
+        h1 { margin-bottom: 0.25rem; }
+        .subtitle { color: #6b7280; margin-top: 0; }
+        .row { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; }
+        label { min-width: 70px; color: #374151; }
+        input { flex: 1; min-width: 120px; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font: inherit; }
+        button { padding: 0.4rem 0.8rem; border: 1px solid #1f2937; background: #1f2937; color: white; border-radius: 4px; font: inherit; cursor: pointer; }
+        button.secondary { background: white; color: #1f2937; }
+        pre {
+            background: #111827;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 3rem;
+            margin-top: 1rem;
+        }
+        .group { border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem; margin: 0.75rem 0; background: white; }
+        .group h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; color: #374151; }
+    </style>
+</head>
+<body>
+    <h1>miniRedis</h1>
+    <p class="subtitle">In-memory key-value store · Java + Quarkus + GraalVM · <span id="status">ready</span></p>
+
+    <div class="group">
+        <h3>PING</h3>
+        <div class="row">
+            <input id="ping-msg" placeholder="optional message" />
+            <button onclick="runCmd('PING', ['ping-msg'])">PING</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>SET</h3>
+        <div class="row">
+            <label>key</label><input id="set-key" placeholder="foo" />
+            <label>value</label><input id="set-val" placeholder="bar" />
+            <label>EX s</label><input id="set-ex" placeholder="optional" style="max-width: 80px;" />
+            <button onclick="cmdSet()">SET</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>GET</h3>
+        <div class="row">
+            <input id="get-key" placeholder="foo" />
+            <button onclick="cmdGet()">GET</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>DEL</h3>
+        <div class="row">
+            <input id="del-key" placeholder="foo" />
+            <button class="secondary" onclick="cmdDel()">DEL</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>EXPIRE / TTL</h3>
+        <div class="row">
+            <input id="exp-key" placeholder="foo" />
+            <input id="exp-sec" placeholder="seconds" style="max-width: 100px;" />
+            <button class="secondary" onclick="cmdExpire()">EXPIRE</button>
+            <button class="secondary" onclick="cmdTtl()">TTL</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>INCR</h3>
+        <div class="row">
+            <input id="incr-key" placeholder="counter" />
+            <button class="secondary" onclick="cmdIncr()">INCR</button>
+        </div>
+    </div>
+
+    <div class="group">
+        <h3>KEYS / FLUSHALL</h3>
+        <div class="row">
+            <button class="secondary" onclick="cmdKeys()">KEYS</button>
+            <button class="secondary" onclick="cmdFlush()">FLUSHALL</button>
+        </div>
+    </div>
+
+    <pre id="out">Result will appear here.</pre>
+
+    <script>
+        const out = document.getElementById('out');
+
+        async function runCmd(cmd, args) {
+            document.getElementById('status').textContent = 'running…';
+            try {
+                const resp = await fetch('/cmd', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cmd, args }),
+                });
+                const json = await resp.json();
+                out.textContent = JSON.stringify(json, null, 2);
+                document.getElementById('status').textContent = 'ready';
+            } catch (err) {
+                out.textContent = 'ERROR: ' + err;
+                document.getElementById('status').textContent = 'error';
+            }
+        }
+
+        const val = id => (document.getElementById(id).value || '').trim();
+        const argOrNull = id => { const v = val(id); return v === '' ? null : v; };
+
+        function cmdSet() {
+            const args = [val('set-key'), val('set-val')];
+            const ex = val('set-ex');
+            if (ex) args.push('EX', ex);
+            runCmd('SET', args);
+        }
+        function cmdGet() { runCmd('GET', [val('get-key')]); }
+        function cmdDel() { runCmd('DEL', [val('del-key')]); }
+        function cmdExpire() { runCmd('EXPIRE', [val('exp-key'), val('exp-sec')]); }
+        function cmdTtl() { runCmd('TTL', [val('exp-key')]); }
+        function cmdIncr() { runCmd('INCR', [val('incr-key')]); }
+        function cmdKeys() { runCmd('KEYS', []); }
+        function cmdFlush() { runCmd('FLUSHALL', []); }
+    </script>
+</body>
+</html>

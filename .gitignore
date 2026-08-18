@@ -1,0 +1,18 @@
+target/
+data/
+.mvn/wrapper/maven-wrapper.jar
+
+*.class
+*.log
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Native build artifacts
+*.o
+*.obj
+*.exe
+
+# Local data and snapshots
+*.json.tmp
