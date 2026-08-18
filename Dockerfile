@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1.6
 
 ###############################################################################
-# Stage 1 — build a GraalVM native binary with Mandrel
+# Stage 1 — build a GraalVM native binary
 ###############################################################################
-FROM quay.io/quarkus/mandrel-builder-image:jdk-21 AS build
+# GraalVM CE JDK 21 ships with the native-image component pre-installed and
+# lives on a public registry, so Render can pull it without a quay.io login.
+FROM ghcr.io/graalvm/graalvm-ce:21.1.0 AS build
 
 WORKDIR /build
 
@@ -14,6 +16,9 @@ RUN chmod +x mvnw && ./mvnw -B -ntp -q dependency:go-offline
 
 COPY src ./src
 
+# JAVA_HOME is already set inside the graalvm-ce image. -Dnative activates
+# the quarkus-maven-plugin native profile, which invokes the native-image
+# compiler that ships in this image.
 RUN ./mvnw -B -ntp package -Dnative -DskipTests
 
 ###############################################################################
