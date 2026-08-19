@@ -11,20 +11,22 @@ import java.util.Map;
 @ApplicationScoped
 public class CommandDispatcher {
 
-    private final Map<String, CommandHandler> dispatch = new HashMap<>();
+    private Map<String, CommandHandler> dispatch = Map.of();
 
     @PostConstruct
     void init() {
-        dispatch.put("PING", StringCommands::ping);
-        dispatch.put("SET", StringCommands::set);
-        dispatch.put("GET", StringCommands::get);
-        dispatch.put("DEL", StringCommands::del);
-        dispatch.put("EXISTS", StringCommands::exists);
-        dispatch.put("INCR", StringCommands::incr);
-        dispatch.put("KEYS", StringCommands::keys);
-        dispatch.put("FLUSHALL", StringCommands::flushAll);
-        dispatch.put("EXPIRE", ExpiryCommands::expire);
-        dispatch.put("TTL", ExpiryCommands::ttl);
+        Map<String, CommandHandler> map = new HashMap<>();
+        map.put("PING", StringCommands::ping);
+        map.put("SET", StringCommands::set);
+        map.put("GET", StringCommands::get);
+        map.put("DEL", StringCommands::del);
+        map.put("EXISTS", StringCommands::exists);
+        map.put("INCR", StringCommands::incr);
+        map.put("KEYS", StringCommands::keys);
+        map.put("FLUSHALL", StringCommands::flushAll);
+        map.put("EXPIRE", ExpiryCommands::expire);
+        map.put("TTL", ExpiryCommands::ttl);
+        dispatch = Map.copyOf(map);
     }
 
     public Reply execute(Store store, String name, List<String> args) {
