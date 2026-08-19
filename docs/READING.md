@@ -15,6 +15,7 @@ The Java/Quarkus-specific reading (JAX-RS, Jackson, GraalVM native-image, `@Obse
 **Read:**
 - *Introduction to Algorithms* (Cormen, Leiserson, Rivest, Stein — "CLRS"), **Chapter 11: Hash Tables**. The canonical treatment: direct addressing, chaining, open addressing, and why hash tables give amortized O(1) operations.
 - *Designing Data-Intensive Applications* (Kleppmann), **Chapter 3: Storage and Retrieval**, specifically the opening section "Hash Indexes." Frames the same structure as a database engineer would — an in-memory hash map backed by an append-only log, which is close to how Redis's own `dict.c` and RDB persistence relate to each other.
+- *Build Your Own Redis with C/C++* (Smith, free at https://build-your-own.org/redis/), **Chapter 8: Hashtables** (Parts 1 & 2). Builds a chained hash table from the ground up — the exact structure `ConcurrentHashMap` gives miniRedis for free. Read it once to see the internals you're standing on.
 
 ---
 
@@ -29,6 +30,7 @@ The Java/Quarkus-specific reading (JAX-RS, Jackson, GraalVM native-image, `@Obse
 - *Modern Concurrency in Java* (A N M Bazlur Rahman — O'Reilly / Apress, ~2024). The modern companion to JCIP. Covers `ConcurrentHashMap`, structured concurrency, and the JDK 21 virtual threads / scoped values additions. Less rigorous than Goetz, more cookbook-style — read JCIP first for the theory, then this for the JDK 21 surface.
 - *Operating Systems: Three Easy Pieces* (Arpaci-Dusseau & Arpaci-Dusseau, free at ostep.org), the Concurrency section — chapters **"Locks"** and **"Lock-based Concurrent Data Structures."** Explains what a lock actually buys you and where naive locking still goes wrong.
 - *The Well-Grounded Java Developer* (Evans) — the chapter on the Java Memory Model (JMM). Useful once, to understand why `volatile`, `synchronized`, and `ConcurrentHashMap` exist as separate tools.
+- *Build Your Own Redis with C/C++* (Smith, free at https://build-your-own.org/redis/), **Chapter 5: Concurrent IO Models** and **Chapter 6–7: Event Loop**. The C-world answer to the same problem miniRedis solves with a `ConcurrentHashMap`: real Redis runs one thread with an event loop, so it *avoids* shared-mutable-state races entirely rather than synchronizing them. The contrast is the point.
 
 For miniRedis specifically: `ConcurrentHashMap` is the idiomatic choice. If you want to *learn* why low-level locking matters, swap to `ReentrantReadWriteLock` around a plain `HashMap` and write the same tests — you'll see the failure modes the high-level collection is hiding from you.
 
@@ -42,6 +44,7 @@ For miniRedis specifically: `ConcurrentHashMap` is the idiomatic choice. If you 
 
 **Read:**
 - Redis official docs, **"How Redis expires keys"** — https://redis.io/docs/latest/develop/use/keyspace/ (the "How Redis expires keys" section). This is the primary source: real Redis uses exactly the lazy + active hybrid miniRedis imitates, and the docs explain the reasoning directly from the people who built it.
+- *Build Your Own Redis with C/C++* (Smith, free at https://build-your-own.org/redis/), **Chapter 12: Timer and Timeout** + **Chapter 13: Cache Expiration with TTL**. The from-scratch build of exactly the lazy + active hybrid above — a second source on the mechanism, in a language where you wire the timer yourself.
 
 ---
 
@@ -85,6 +88,15 @@ For miniRedis specifically: `ConcurrentHashMap` is the idiomatic choice. If you 
 **What it is:** Once the mechanics above make sense, it's worth reading about the real system this project is a toy version of — to see which simplifications miniRedis makes and why.
 
 **Read:**
+- *Build Your Own Redis with C/C++* by James Smith (free at https://build-your-own.org/redis/) — **the single most on-topic book for this project.** It guides a from-scratch build of a Redis-compatible server in small steps, teaching network programming, data structures, and low-level C along the way. miniRedis is the same exercise transplanted from C/sockets to Java/HTTP — so the book is the reference for *what real Redis does and why*, while miniRedis restates the same concepts in the Quarkus idiom. Chapter → topic map:
+
+  - Ch. 8 Hashtables → Topic A (hash-table storage)
+  - Ch. 5 Concurrent IO Models, Ch. 6–7 Event Loop → Topic B (concurrency)
+  - Ch. 12 Timer & Timeout, Ch. 13 Cache Expiration with TTL → Topic C (expiry)
+  - Ch. 9 Data Serialization → Topic D (snapshot/persistence)
+  - Ch. 3–4 TCP Server, Request-Response Protocol → *not in miniRedis* — replaced by HTTP/JSON (Topic E)
+
+  The chapters miniRedis skips (3–7, the socket/RESP/event-loop path) are the parts the HTTP stack replaces; read them if you want to see what Quarkus + JAX-RS is doing on your behalf.
 - Redis official docs, **"Redis Introduction"** — https://redis.io/docs/latest/develop/ — the conceptual overview: what Redis actually is, and why it calls itself a "data structure server" rather than just a key-value store.
 - *Redis in Action* by Josiah Carlson (free at https://redislabs.com/ebook/redis-in-action/) — practical patterns; useful for seeing the commands miniRedis reimplements (SET, GET, EXPIRE, INCR) in real usage.
 
