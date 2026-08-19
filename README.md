@@ -3,6 +3,8 @@
 A tiny in-memory key-value store with TTL, JSON snapshotting, and a browser UI.
 Built with Java 21 + Quarkus 3.x, compiled to a **GraalVM native image** for ~50ms cold start.
 
+**Live demo:** [https://miniredis-lf1r.onrender.com/](https://miniredis-lf1r.onrender.com/)
+
 ## Features
 
 - HTTP/JSON API on `POST /cmd` (SET, GET, DEL, EXISTS, INCR, KEYS, FLUSHALL, EXPIRE, TTL, PING)
