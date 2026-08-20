@@ -26,6 +26,7 @@ public class CommandDispatcher {
         map.put("FLUSHALL", StringCommands::flushAll);
         map.put("EXPIRE", ExpiryCommands::expire);
         map.put("TTL", ExpiryCommands::ttl);
+        map.put("PEXPIREAT", ExpiryCommands::pexpireat);
         dispatch = Map.copyOf(map);
     }
 

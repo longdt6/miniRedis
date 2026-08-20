@@ -24,4 +24,17 @@ public final class ExpiryCommands {
         }
         return new Reply.Int(s.ttl(args.get(0)));
     }
+
+    public static Reply pexpireat(Store s, List<String> args) {
+        if (args.size() < 2) {
+            return new Reply.Error("ERR wrong number of arguments for 'pexpireat' command");
+        }
+        long epochMs;
+        try {
+            epochMs = Long.parseLong(args.get(1));
+        } catch (NumberFormatException e) {
+            return new Reply.Error("ERR value is not a valid integer");
+        }
+        return new Reply.Int(s.setExpiryAt(args.get(0), epochMs) ? 1L : 0L);
+    }
 }

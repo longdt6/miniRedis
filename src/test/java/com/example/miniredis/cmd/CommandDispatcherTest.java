@@ -137,4 +137,29 @@ class CommandDispatcherTest {
         Reply t = dispatcher.execute(store, "TTL", List.of("k"));
         assertTrue(((Reply.Int) t).value() > 0);
     }
+
+    @Test
+    void pexpireatSetsAbsoluteDeadline() {
+        dispatcher.execute(store, "SET", List.of("k", "v"));
+        long future = System.currentTimeMillis() + 60_000L;
+        Reply r = dispatcher.execute(store, "PEXPIREAT", List.of("k", Long.toString(future)));
+        assertInstanceOf(Reply.Int.class, r);
+        assertEquals(1L, ((Reply.Int) r).value());
+        Reply t = dispatcher.execute(store, "TTL", List.of("k"));
+        assertTrue(((Reply.Int) t).value() > 0, "ttl should be positive after PEXPIREAT");
+    }
+
+    @Test
+    void pexpireatMissingKeyReturnsZero() {
+        long future = System.currentTimeMillis() + 60_000L;
+        Reply r = dispatcher.execute(store, "PEXPIREAT", List.of("nope", Long.toString(future)));
+        assertInstanceOf(Reply.Int.class, r);
+        assertEquals(0L, ((Reply.Int) r).value());
+    }
+
+    @Test
+    void pexpireatMissingArgsReturnsError() {
+        Reply r = dispatcher.execute(store, "PEXPIREAT", List.of("k"));
+        assertInstanceOf(Reply.Error.class, r);
+    }
 }
