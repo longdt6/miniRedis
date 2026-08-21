@@ -33,10 +33,12 @@ WORKDIR /work
 # Quarkus produces a single static binary named <artifactId>-runner
 COPY --from=build /build/target/*-runner /work/application
 
-EXPOSE 8080
+EXPOSE 10000
 
 ENV MINIREDIS_DATA_FILE=/tmp/miniredis.json
-ENV PORT=8080
 
-# Micro-image uses /work as the working dir; bind on $PORT so Render can route
-ENTRYPOINT ["./application", "-Dquarkus.http.port=${PORT}"]
+# Bind on $PORT so Render can route. Render injects PORT (default 10000); the
+# app reads it via quarkus.http.port=${PORT:8080} in application.properties, so
+# no system property is needed here. Do NOT hardcode a port — it diverges from
+# Render's routing port and produces a 502.
+ENTRYPOINT ["./application"]

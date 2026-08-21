@@ -8,8 +8,6 @@ services:
     healthCheckPath: /
     autoDeploy: true
     envVars:
-      - key: PORT
-        value: "8080"
       - key: MINIREDIS_DATA_FILE
         value: /tmp/miniredis.json
       - key: MINIREDIS_EXPIRY_SWEEP_MS
